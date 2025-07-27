@@ -6,6 +6,8 @@ substitutions:
 
 esphome:
   name: "maximatrix"
+  friendly_name: "MaxiMatrix"
+  comment: "8x32 Matrix GFX Demo"
 
 esp8266:
   board: d1_mini
@@ -74,8 +76,13 @@ display:
       Color green = Color(0x00FF00);
       Color blue = Color(0x0000FF);
       Color yellow = Color(0xFFFF00);
+
       it.rectangle(0, 0, 8, 8, red);
+
       it.rectangle(11, 3, 2, 2, yellow);
+      it.rectangle(10, 2, 4, 4, green);
+      it.rectangle(9,  1, 6, 6, blue);
+
       it.rectangle(16, 1, 6, 6, green);
       it.rectangle(24, 2, 4, 4, blue);
       it.rectangle(30, 3, 2, 2, red);
