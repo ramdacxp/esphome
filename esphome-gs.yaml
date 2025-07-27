@@ -1,0 +1,398 @@
+# ============================================================================
+# HomeAssistant Garagentorsteuerung, 26.11.2023
+# NodeMCU, RC422 RFID-Reader, PCF8574 Port Extender,
+# LCD Display, Relais, Buttons, End contacts
+# ============================================================================
+# RFID-Reader          -> Node MCU
+# - +3.3V              -> 3V
+# - MISO (SPI MISO)    -> D6 (GPIO 12 + SPI MISO)
+# - MOSI (SPI MOSI)    -> D7 (GPIO 13 + SPI MOSI)
+# - SCK (SPI SCK)      -> D5 (GPIO 14 + SPI SCLK)
+# - SDA (SPI SS / SDA) -> D8 (GPIO 15 + SPI CS)
+# - IRQ                -> not connected
+# ----------------------------------------------------------------------------
+# Port Extender        -> Node MCU
+# - VCC                -> 3V
+# - SDA                -> D2 (DPIO4 + I2C SDA)
+# - SCL                -> D1 (DPIO5 + I2C SCL)
+# - P0                 -> not connected - previously: CLK Rotary Controller (Im Uhrzeigersinn)
+# - P1                 -> Info Btn (gegen GND) - previosly: DT Rotary Controller (Gegen Uhrzeigersinn)
+# - P2                 -> SW Rotary Controller (Button)
+# - P3                 -> IN1 (Relais Garage)
+# - P4                 -> IN2 (Relaus Haustür)
+# - P5                 -> Endkontakt Offen (gegen GND)
+# - P6                 -> Endkontakt Geschlossen (gegen GND)
+# - P7                 -> 24V-Relains Ausgang Licht/Klingel (gegen GND)
+# - INT                -> not connected
+# ----------------------------------------------------------------------------
+# LCD Display 2x16     -> Node MCU
+# - VCC                -> VU (USB-Power-Out, 5V)
+# - SDA                -> D2 (DPIO4 + I2C SDA)
+# - SCL                -> D1 (DPIO5 + I2C SCL)
+# ============================================================================
+# NodeMCU has 2 SPI channels:
+# - Low (SD0, SD1, CMD, CLK) controls Flash memory,
+# - High (D5-D8) free for user
+# Reboots if SD2/GPIO-9 or SD3/GPIO-10 are used as I/O.
+# SPI usage of D8 disturbs D0.
+# Internal LED: D4/GPIO2
+# ============================================================================
+
+esphome:
+  name: "esphome-gs"
+  friendly_name: Garagensteuerung
+
+  on_boot:
+    then:
+      # Trigger backlight Auto Off
+      - binary_sensor.template.publish:
+          id: backlight
+          state: ON
+      - binary_sensor.template.publish:
+          id: backlight
+          state: OFF
+
+# ============================================================================
+
+esp8266:
+  board: esp01_1m
+
+logger:
+
+api:
+  encryption:
+    key: "wwdHKpMJiOw2WKlbADqSWychRQ/OnR1aDxoZzYZDKwg="
+
+ota:
+  - platform: esphome
+
+wifi:
+  id: gs_wifi
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "EspHome-GS"
+    password: "setupGarage"
+
+captive_portal:
+
+# ============================================================================
+
+# Use internal LED as status LED
+status_led:
+  pin:
+    number: GPIO2
+    inverted: true
+
+spi:
+  clk_pin: GPIO14
+  mosi_pin: GPIO13
+  miso_pin: GPIO12
+
+rc522_spi:
+  cs_pin: GPIO15
+  on_tag:
+    then:
+      - lambda: |-
+          id(rfid_tag).publish_state(x);
+
+button:
+  # Reboot
+  - platform: restart
+    name: "Restart"
+    id: trigger_restart
+
+  # Garagentor triggern
+  - platform: template
+    name: "Garage start/stop"
+    id: trigger_garage
+    icon: mdi:garage
+    on_press:
+      - switch.turn_on: relais_garage
+
+  # Tür sofort öffnen
+  - platform: template
+    name: "Tür öffnen"
+    id: trigger_door
+    icon: mdi:lock-open-variant
+    on_press:
+      - switch.turn_on: relais_door
+
+  # Tür verzögert öffnen
+  - platform: template
+    name: "Tür in 15s öffnen"
+    id: trigger_door_delayed
+    icon: mdi:timer-lock-open
+    on_press:
+      - binary_sensor.template.publish:
+          id: door_delayed
+          state: ON
+      - binary_sensor.template.publish:
+          id: door_delayed
+          state: OFF
+
+  # Hintergrundbeleuchtung einschalten
+  - platform: template
+    name: "Hintergrundbeleuchtung"
+    id: trigger_backlight
+    icon: mdi:clock-digital
+    on_press:
+      - binary_sensor.template.publish:
+          id: backlight
+          state: ON
+      - binary_sensor.template.publish:
+          id: backlight
+          state: OFF
+
+i2c:
+  scl: GPIO5 # D15/SCL
+  sda: GPIO4 # D14/SDA
+  # Try to fix warning: component display took to long
+  # https://github.com/esphome/issues/issues/4717#issuecomment-1643391691
+  # default 50kHz. Values are 10kHz, 50kHz, 100kHz, 200kHz, … 800kHz
+  frequency: 400kHz
+
+# Port expander: DIPs 000 = adr 0x20
+pcf8574:
+  - id: "myexpander"
+    address: 0x20
+
+text_sensor:
+  - platform: template
+    id: "rfid_tag"
+    name: "Letztes RFID Tag"
+
+  - platform: template
+    id: "rfid_user"
+    name: "Letzter Nutzer"
+
+# LCD display
+display:
+  - platform: lcd_pcf8574
+    dimensions: 16x2
+    address: 0x27
+    # all changes update the display explicitely
+    update_interval: 15s
+    id: "mydisplay"
+    # hint: pages are not supported on lcd_pcf8574 :(
+    lambda: |-
+      it.print( 0, 0, "Garagentor" );
+
+      if (id(garage_closed).state) it.print( 13, 0, "ZU ");
+      else if (id(garage_open).state) it.print( 13, 0, "AUF");
+      else it.print( 13, 0, "???");
+
+      if (id(relais_garage).state) it.print( 0, 1, "Oeffne Garage   " );
+      else if (id(relais_door).state) it.print( 0, 1, "Oeffne Haustuer " );
+      else if (id(door_delayed).state) it.print( 0, 1, "Tuer in 15 Sek  " );
+      else if (!id(gs_wifi).is_connected()) it.print( 0, 1, "Verbinde WLAN..." );
+      else it.print( 0, 1, "Bereit          " );
+
+binary_sensor:
+  # Button zum (verzögerten) Öffnen der Haustür
+  - platform: gpio
+    id: "button_door_delayed"
+    pin:
+      pcf8574: myexpander
+      number: 2
+      mode:
+        input: true
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      - button.press: trigger_door_delayed
+
+  # Info Button (schaltet Hintergrundbeleuchtung ein)
+  - platform: gpio
+    id: "button_info"
+    pin:
+      pcf8574: myexpander
+      number: 1
+      mode:
+        input: true
+      inverted: true
+    filters:
+      - delayed_on: 10ms
+      - delayed_off: 10ms
+    on_press:
+      - button.press: trigger_backlight
+
+  # Torkontakt: komplett geöffnet
+  - platform: gpio
+    id: "garage_open"
+    name: "Garagentor offen"
+    pin:
+      pcf8574: myexpander
+      number: 5
+      mode:
+        input: true
+      inverted: true
+    filters:
+      - delayed_on: 250ms
+      - delayed_off: 250ms
+    on_press:
+      - cover.template.publish:
+          id: garage_cover
+          state: OPEN
+          current_operation: IDLE
+    on_release:
+      - cover.template.publish:
+          id: garage_cover
+          current_operation: CLOSING
+    on_state:
+      - button.press: trigger_backlight
+      - component.update: mydisplay
+
+  # Torkontakt: komplett geschlossen
+  - platform: gpio
+    id: "garage_closed"
+    name: "Garagentor geschlossen"
+    pin:
+      pcf8574: myexpander
+      number: 6
+      mode:
+        input: true
+      inverted: true
+    filters:
+      - delayed_on: 250ms
+      - delayed_off: 250ms
+    on_press:
+      - cover.template.publish:
+          id: garage_cover
+          state: CLOSED
+          current_operation: IDLE
+    on_release:
+      - cover.template.publish:
+          id: garage_cover
+          current_operation: OPENING
+    on_state:
+      - button.press: trigger_backlight
+      - component.update: mydisplay
+
+  # Sensor for LCD backlight
+  - platform: template
+    name: "Hintergrundbeleuchtung"
+    id: backlight
+    icon: mdi:clock-digital
+    filters:
+      - delayed_off: 20s
+    on_press:
+      - lambda: id(mydisplay).backlight();
+    on_release:
+      - lambda: id(mydisplay).no_backlight();
+
+  # Sensor if delayed trigger is active
+  - platform: template
+    name: "Haustür Verzögerung"
+    id: door_delayed
+    icon: mdi:timer-lock-open
+    filters:
+      - delayed_off: 15s
+    on_press:
+      - button.press: trigger_backlight
+      - component.update: mydisplay
+    on_release:
+      - switch.turn_on: relais_door
+
+  # RFID Tags
+  - platform: rc522
+    uid: 67-0A-DA-D9
+    name: "RFID Tag A"
+    on_press:
+      - lambda: id(rfid_user).publish_state("Tag A");
+    #   - switch.turn_on: relais_garage
+
+  - platform: rc522
+    uid: 1A-D7-9F-7F
+    name: "RFID Tag B"
+    on_press:
+      - lambda: id(rfid_user).publish_state("Tag B");
+      # - lambda: id(trigger_door_delayed).press();
+
+  - platform: rc522
+    uid: 85-67-DB-D9
+    name: "RFID Tag Mischa"
+    on_press:
+      - switch.turn_on: relais_garage
+      - lambda: id(rfid_user).publish_state("Mischa");
+
+  - platform: rc522
+    uid: 17-58-DA-D9
+    name: "RFID Tag Emma"
+    on_press:
+      - switch.turn_on: relais_garage
+      - lambda: id(rfid_user).publish_state("Emma");
+
+  - platform: rc522
+    uid: A3-72-DA-D9
+    name: "RFID Tag Luise"
+    on_press:
+      - switch.turn_on: relais_garage
+      - lambda: id(rfid_user).publish_state("Luise");
+
+  - platform: rc522
+    uid: E5-AD-D9-D9
+    name: "RFID Tag Annegret"
+    on_press:
+      - switch.turn_on: relais_garage
+      - lambda: id(rfid_user).publish_state("Annegret");
+
+switch:
+  # Switch zur Ansteuerung des Relais: Garagentor
+  - platform: gpio
+    pin:
+      pcf8574: myexpander
+      number: 3
+      mode:
+        output: true
+      inverted: true
+    restore_mode: ALWAYS_OFF
+    id: relais_garage
+    # name: "Relais Garage"
+    icon: "mdi:garage"
+    on_turn_on:
+    - button.press: trigger_backlight
+    - component.update: mydisplay
+    - delay: 750ms
+    - switch.turn_off: relais_garage
+    - component.update: mydisplay
+
+  # Switch zur Ansteuerung des Relais: Haustür
+  - platform: gpio
+    pin:
+      pcf8574: myexpander
+      number: 4
+      mode:
+        output: true
+      inverted: true
+    restore_mode: ALWAYS_OFF
+    id: relais_door
+    # name: "Relais Haustür"
+    icon: "mdi:door"
+    on_turn_on:
+    - button.press: trigger_backlight
+    - component.update: mydisplay
+    - delay: 4000ms
+    - switch.turn_off: relais_door
+    - component.update: mydisplay
+
+# Kombiniertes Control für Garagentor
+cover:
+  # https://esphome.io/components/cover/template
+  - platform: template
+    device_class: garage
+    id: garage_cover
+    name: "Garagentor"
+    lambda: |-
+      if (id(garage_open).state) return COVER_OPEN;
+      else if (id(garage_closed).state) return COVER_CLOSED;
+      else return {};
+    open_action:
+      - switch.turn_on: relais_garage
+    close_action:
+      - switch.turn_on: relais_garage
+    stop_action:
+      - switch.turn_on: relais_garage
