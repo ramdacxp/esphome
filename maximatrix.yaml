@@ -1,0 +1,81 @@
+# Adapted this sample
+# https://github.com/lubeda/EspHoMaTriXv2/blob/2025.7.1/tests/esp8266-arduino.yaml
+
+substitutions:
+  matrix_pin: GPIO3 # RX (to reduce flickering, see https://esphome.io/components/light/neopixelbus)
+
+esphome:
+  name: "maximatrix"
+
+esp8266:
+  board: d1_mini
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "Esphome-Web-63A165"
+    password: "ouQ0TVxJbfS0"
+
+captive_portal:
+
+##################################################################################################
+
+font:
+  - file: fonts/ehmtx.ttf
+    size: 16
+    id: default_font
+    glyphs:  |-
+       !?"%()+*=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnÖÄÜöäüopqrstuvwxyz@<>ß€/
+
+##################################################################################################
+
+time:
+  - platform: homeassistant
+    id: ehmtx_time
+
+light:
+  - platform: neopixelbus
+    id: ehmtx_light
+    type: GRB
+    variant: WS2812
+    pin: $matrix_pin
+    num_leds: 256
+    name: "NeoPixel Light"
+    color_correct: [40%, 40%, 40%]  # set max brightness
+    default_transition_length: 0s
+    restore_mode: ALWAYS_ON
+
+display:
+  - platform: addressable_light
+    id: ehmtx_display
+    addressable_light_id: ehmtx_light
+    width: 32
+    height: 8
+    pixel_mapper: |-
+      if (x % 2 == 0) {
+        return (x * 8) + y;
+      }
+      return (x * 8) + (7 - y);
+    rotation: 0°
+    update_interval: 16ms
+
+    lambda: |-
+      // Draw a bulls-eye pattern
+      Color red = Color(0xFF0000);
+      Color green = Color(0x00FF00);
+      Color blue = Color(0x0000FF);
+      Color yellow = Color(0xFFFF00);
+      it.rectangle(0, 0, 8, 8, red);
+      it.rectangle(11, 3, 2, 2, yellow);
+      it.rectangle(16, 1, 6, 6, green);
+      it.rectangle(24, 2, 4, 4, blue);
+      it.rectangle(30, 3, 2, 2, red);
