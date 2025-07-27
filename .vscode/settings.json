@@ -1,0 +1,4 @@
+{
+  "esphome.dashboardUri": "http://localhost:6052/",
+  "esphome.validator": "dashboard"
+}
