@@ -9,6 +9,13 @@ I was not able to successfully compile on a **Windows on ARM** laptop ("Copilot 
 So headers are missing in the AMR variant of related tools.
 The same code compiles just fine on AMD64.
 
+**Slow?**
+Large projects are very slow during compile (290 vs. 2343 sec).
+It's not related to CPU but I/O, if the EspHome `/config` folder is mounted between Docker and Windows Host.
+
+* Solution: Use a native folder or volume for `/config` and copy the YAML from elsewhere, e.g. `/mnt/host`.
+* Solution 2: Run docker inside WSL2!
+
 ## Usage
 
 * Start new project: `esphome wizard test.yaml`

@@ -8,6 +8,10 @@ esphome:
   name: hub75-64x64
   friendly_name: 64x64 Matrix
 
+  # single threaded compilation could be faster
+  # https://community.home-assistant.io/t/very-slow-compiling-process/600259/16
+  # compile_process_limit: 1
+
 external_components:
   - source: github://TillFleisch/ESPHome-HUB75-MatrixDisplayWrapper@main
 
