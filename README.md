@@ -12,6 +12,7 @@ The same code compiles just fine on AMD64.
 ## Usage
 
 * Start new project: `esphome wizard test.yaml`
+* Build project: `esphome compile hub75-64x64.yaml`
 * Build & upload project: `esphome run template-d1_mini.yaml`
 * Run [Dashboard](http://localhost:6052/): `esphome dashboard /config`
 

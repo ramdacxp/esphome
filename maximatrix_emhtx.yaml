@@ -16,7 +16,7 @@ logger:
   level: DEBUG
 
 api:
-  custom_services: true
+#  custom_services: true
 
 ota:
   - platform: esphome
@@ -34,9 +34,16 @@ captive_portal:
 ##################################################################################################
 
 external_components:
+  # - source:
+  #     type: local
+  #     path:  components
+  #   components: [ ehmtxv2 ]
+
   - source:
-      type: local
-      path:  components
+      type: git
+      url: https://github.com/lubeda/EspHoMaTriXv2
+      ref: 2025.6.1
+    refresh: 60s
     components: [ ehmtxv2 ]
 
 font:
