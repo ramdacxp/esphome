@@ -5,7 +5,8 @@ set ROOT=%~dp0
 echo Creating Config Volume ...
 docker volume create esphome-config
 
-rem   -p 6052:6052 ^
+rem -p 6052:6052 ^
+rem --net=host ^
 
 echo Starting EspHome Bash ...
 echo.
@@ -16,10 +17,11 @@ echo exit
 echo.
 docker run -it --rm ^
   --name "esphome-bash" ^
+  --entrypoint bash ^
   -v "esphome-config:/config" ^
   -v "%ROOT%:/mnt/host" ^
-  --entrypoint bash ^
   ghcr.io/esphome/esphome
+
 
 echo Done.
 endlocal

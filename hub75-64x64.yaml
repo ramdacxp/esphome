@@ -4,6 +4,12 @@
 # Based on this example
 # https://github.com/TillFleisch/ESPHome-HUB75-MatrixDisplayWrapper/blob/main/example.yaml
 
+# CP210x Universal Windows Driver
+# https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads
+
+# Flash with ESPHome Web (holding down BOOT btn)
+# https://web.esphome.io/
+
 esphome:
   name: hub75-64x64
   friendly_name: 64x64 Matrix
@@ -22,30 +28,36 @@ esp32:
 
 logger:
 
-api:
-  encryption:
-    key: "kjdfgkjhHJKjkkjdfgkjhdfgkjdfghkretkjhdfgdfg="
+# api:
+#   encryption:
+#     key: "kjdfgkjhHJKjkkjdfgkjhdfgkjdfghkretkjhdfgdfg="
 
-ota:
-  - platform: esphome
+# ota:
+#   - platform: esphome
 
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
 
-  ap:
-    ssid: "hub75-64x64"
-    password: "setupMatrix"
+#   ap:
+#     ssid: "hub75-64x64"
+#     password: "setupMatrix"
 
-captive_portal:
+# captive_portal:
 
 # ==========================================================
 
-font:
-  # gfonts://family[@weight]
-  - file: "gfonts://Roboto"
-    id: roboto
-    size: 10
+# font:
+#   # gfonts://family[@weight]
+#   - file: "gfonts://Roboto"
+#     id: roboto
+#     size: 10
+
+color:
+  - id: red
+    hex: FF0000
+  - id: blue
+    hex: 0000FF
 
 display:
   - platform: hub75_matrix_display
@@ -54,6 +66,12 @@ display:
     height: 64
     chain_length: 1
     brightness: 90
+
+    # Test
+    clock_phase: False
+    latch_blanking: 1
+    # SHIFTREG, FM6124, FM6126A, ICN2038S, MBI5124, SM5266, DP3246_SM5368
+    driver: FM6124
 
     # defined E because of 64 rows
     E_pin: 32
@@ -71,15 +89,17 @@ display:
 
     # draw something
     lambda: |-
-      it.print(0, 0, id(roboto), "Hello World!");
+      // it.print(0, 0, id(roboto), "Hello World!");
+      it.filled_rectangle(8, 8, 16, 8, id(blue));
+      it.line(16, 32, 16, 48, id(red));
 
-switch:
-  - platform: hub75_matrix_display
-    matrix_id: matrix
-    name: "Power"
-    id: power
+# switch:
+#   - platform: hub75_matrix_display
+#     matrix_id: matrix
+#     name: "Power"
+#     id: power
 
-number:
-  - platform: hub75_matrix_display
-    matrix_id: matrix
-    name: "Brightness"
+# number:
+#   - platform: hub75_matrix_display
+#     matrix_id: matrix
+#     name: "Brightness"
