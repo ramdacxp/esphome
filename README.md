@@ -64,3 +64,9 @@ Selected commands to be used in the ESPHome bash:
 
   * Another ESPHome wrapper
     [sekureco42/esphome-hub75](https://github.com/sekureco42/esphome-hub75)
+
+### Casalux LED Bar
+
+`led.yaml` drives a "Casalux LED Bar" on a ESP32 C3 Super Mini.
+
+More details in the Github project [ramdacxp/lichtleiste](https://github.com/ramdacxp/lichtleiste).

@@ -1,17 +1,32 @@
+# Controls an "Casalux LED Strip" via an ESP32 C3 Super Mini
+#
+# Strip connected to
+# - VIN (5V)
+# - D1 / GPIO3
+# - GND
+
 esphome:
-  name: esphome-ledstrip
-  friendly_name: esphome-ledstrip
+  name: "led"
+  friendly_name: ESP32 C3 Super Mini - LED Strip
+
+  on_boot:
+    then:
+      - light.turn_on:
+          id: led_strip
+          effect: "Regenbogen"
 
 esp32:
-  board: esp32dev
+  board: esp32-c3-devkitm-1
   framework:
-    type: esp-idf
+    type: arduino
 
 # Enable logging
 logger:
 
 # Enable Home Assistant API
 api:
+  # encryption:
+  #   key: "1bpwTpaWXIUiWVzrGZhYKm1W49ark5kfKEdejMD67og="
 
 ota:
   - platform: esphome
@@ -22,20 +37,28 @@ wifi:
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Esphome-Ledstrip"
-    password: "ledstrip"
+    ssid: "LED Hotspot"
+    password: "led-geheim"
 
 captive_portal:
 
+web_server:
+
+# blink slow: warning; blink fast: error; otherwise off
+status_led:
+  pin:
+    number: GPIO08
+    inverted: true
+    ignore_strapping_warning: true
+
+# LEDs
 light:
   - platform: esp32_rmt_led_strip
-    rgb_order: GRB
     pin: GPIO3
     num_leds: 10
-    #chipset: ws2812
     chipset: ws2812
-    #is_rgbw: True
-    name: "LED Strip Test"
+    name: "RGB LED Strip"
+    id: led_strip
     effects:
       - random:
           name: Zufallsfarbe
