@@ -1,33 +1,32 @@
-_Updated at [Session 56](https://session.pestilenz.org/)_
-
 # Docker hosted ESPHome
 
-* This repo provides an `esphome.cmd`, which starts the ESPHome Dashboard on the local PC.  
-  Dashboard address: <http://localhost:6052/>
+_(Updated during [👾 Session 56](https://session.pestilenz.org/) in Nov 2025)_
+
+This repo provides scripts to execute dockerized ESPHome commands.
+
+* Use `compile.cmd file.yaml compname` to compile the ESPHome component `compname` defined in the file `file.yaml`.
+  Fireware will be available in `bin\compname.bin`.
+* Use `bash.cmd` to start a WSL bash shell, where the `esphome` command is available.
+* Frameworks, libraries, and temp. PlatformIO data are cached in docker volumes `esphome-config` and `esphome-platformio` speed up compilation and prevent multiple large downloads.
+  The volumes can be deleted to force a fresh build.
+* Use `dashboard.cmd` to start the ESPHome Dashboard at: <http://localhost:6052/>.
 * If the repo's root folder is opened in [VSCode](https://code.visualstudio.com/), the [ESPHome extension](https://marketplace.visualstudio.com/items?itemName=ESPHome.esphome-vscode) provides syntax highlighting for the `.yaml` files.
 
-## Bad performance?
+## WSL Performance Tweak
 
-Large projects are very slow during compilation (290 vs. 2343 sec).
-It's not related to CPU but I/O, if the ESPHome `/config` folder is mounted between Docker and Windows Host.
-
-Solution used in `esphome-fastcompile.cmd`:
-
-* Use a native docker volume for `/config`
-* Mount Windows host's folder elsewhere, e.g. at `/mnt/host`
-* Copy `*.yaml` over to `config` dir and firmware `*.bin` back
-
-```bash
-esphome clean hub75-64x64.yaml
-cp /mnt/host/*.yaml . && esphome compile hub75-64x64.yaml
-cp /config/.esphome/build/hub75-64x64/.pioenvs/hub75-64x64/firmware.factory.bin /mnt/host/firmware.bin
-```
+Mounting a local windows folder into a WSL2 based docker container and compiling within this folder leads to a massive performance drop (factor 10) because of many I/O operations during the build.
+The scripts solve this by mounting the local folder to `/mnt/host` and copying `*.yaml` and `*.bin` back and forth. Temp. compilation files are stored in docker volumes.
 
 ## Usage
 
-* Start new project: `esphome wizard test.yaml`
-* Build project: `esphome compile hub75-64x64.yaml`
-* Build & upload project: `esphome run template-d1_mini.yaml`
+* Compile: `compile.cmd file.yaml name`
+* ESPHome bash: `bash.cmd`
+
+Selected commands to be used in the ESPHome bash:
+
+* Start new project: `esphome wizard project.yaml`
+* Build project: `esphome compile project.yaml`
+* Build & upload project: `esphome run project.yaml`
 * Run [Dashboard](http://localhost:6052/): `esphome dashboard /config`
 
 ## Links
