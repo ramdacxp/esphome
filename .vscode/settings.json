@@ -1,4 +1,5 @@
 {
   "esphome.dashboardUri": "http://localhost:6052/",
-  "esphome.validator": "dashboard"
+  "esphome.validator": "dashboard",
+  "svg.preview.background": "custom"
 }

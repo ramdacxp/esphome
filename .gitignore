@@ -1,4 +1,5 @@
 # Gitignore settings for ESPHome
 .esphome/
+bin/
+*.bin
 secrets.yaml
-firmware*.bin

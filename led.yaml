@@ -1,0 +1,58 @@
+esphome:
+  name: esphome-ledstrip
+  friendly_name: esphome-ledstrip
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  # ssid: !secret wifi_ssid
+  # password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esphome-Ledstrip"
+    password: "ledstrip"
+
+captive_portal:
+
+light:
+  - platform: esp32_rmt_led_strip
+    rgb_order: GRB
+    pin: GPIO3
+    num_leds: 10
+    #chipset: ws2812
+    chipset: ws2812
+    #is_rgbw: True
+    name: "LED Strip Test"
+    effects:
+      - random:
+          name: Zufallsfarbe
+      - pulse:
+          name: Pulsierend
+      - addressable_twinkle:
+          name: Sternenglitzer einfarbig
+      - addressable_random_twinkle:
+          name: Sternenglitzer bunt
+      - addressable_scan:
+          name: Night Rider
+      # - strobe:
+      # - flicker:
+      - addressable_color_wipe:
+          name: Buntes Durcheinander
+      - addressable_fireworks:
+          name: Feuerwerk
+      # - addressable_flicker:
+      - addressable_rainbow:
+          name: Regenbogen
