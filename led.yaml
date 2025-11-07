@@ -13,7 +13,7 @@ esphome:
     then:
       - light.turn_on:
           id: led_strip
-          effect: "Regenbogen"
+          effect: "Night Rider"
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -55,8 +55,9 @@ status_led:
 light:
   - platform: esp32_rmt_led_strip
     pin: GPIO3
-    num_leds: 10
-    chipset: ws2812
+    num_leds: 14
+    chipset: WS2812
+    rgb_order: RGB
     name: "RGB LED Strip"
     id: led_strip
     effects:

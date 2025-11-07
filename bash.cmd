@@ -10,6 +10,7 @@ echo Starting EspHome ...
 docker run -it --rm ^
   --name "esphome-bash" ^
   --entrypoint "/bin/bash" ^
+  --network host ^
   -v "esphome-config:/config" ^
   -v "esphome-platformio:/root/.platformio" ^
   -v "%~dp0:/mnt/host" ^
