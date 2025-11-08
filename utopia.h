@@ -24,6 +24,9 @@ int GetNumberOfLines(std::string text)
   return lines;
 }
 
+// Multiline text rendering idea from here:
+// https://community.home-assistant.io/t/centering-text-when-using-multiple-printf/491205/14
+// https://community.home-assistant.io/t/eink-multi-line-text/255814/11
 void PrintMultiline(
     esphome::display::Display *it,
     int x, int y,

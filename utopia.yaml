@@ -3,11 +3,15 @@
 # based on this sketch
 # https://github.com/Esshahn/esp32-dotmatrix-utopia-offline/blob/main/esp32-dotmatrix-utopia-offline.ino
 
+# YAML multi line strings
+# https://stackoverflow.com/questions/3790454/how-do-i-break-a-string-in-yaml-over-multiple-lines
+
 esphome:
   name: utopia
   friendly_name: Framed Utopia
   includes:
     - utopia.h
+    - utopia_messages.h
 
 external_components:
   - source: github://TillFleisch/ESPHome-HUB75-MatrixDisplayWrapper@main
@@ -37,6 +41,26 @@ logger:
 # captive_portal:
 
 # ==========================================================
+
+globals:
+  - id: message
+    type: std::string
+    restore_value: no
+    initial_value: '"Session 56\nHello World\nNice to\nmeet you"'
+
+button:
+  - platform: template
+    id: nextMessage
+    name: "Nächste Nachricht"
+    on_press:
+      then:
+        - lambda: |-
+            id(message) = GetRandomMessage();
+
+interval:
+  - interval: 5s
+    then:
+      - button.press: nextMessage
 
 font:
   # gfonts://family[@weight]
@@ -96,5 +120,6 @@ display:
     # draw something
     lambda: |-
       it.fill(id(black));
-      PrintCenteredMultiline(&it, id(roboto), id(red), "Session •56•\nÄÖÜäöüß\n3rd Line");
+      // PrintCenteredMultiline(&it, id(roboto), id(red), "Session •56•\nÄÖÜäöüß\n3rd Line");
+      PrintCenteredMultiline(&it, id(roboto), id(red), id(message));
       it.rectangle(0, 0, 64, 64, id(orange));
