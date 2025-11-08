@@ -1,0 +1,103 @@
+# Hub75 Test Sketch
+
+esphome:
+  name: hub75-test
+  friendly_name: HUB75 Test
+
+external_components:
+  - source: github://TillFleisch/ESPHome-HUB75-MatrixDisplayWrapper@main
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+# api:
+#   encryption:
+#     key: "kjdfgkjhHJKjkkjdfgkjhdfgkjdfghkretkjhdfgdfg="
+
+# ota:
+#   - platform: esphome
+
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
+
+#   ap:
+#     ssid: "hub75-64x64"
+#     password: "setupMatrix"
+
+# captive_portal:
+
+# ==========================================================
+
+font:
+  # gfonts://family[@weight]
+  - file: "gfonts://Roboto"
+    id: roboto
+    size: 10
+
+color:
+  - id: black
+    hex: "000000"
+  - id: red
+    hex: "FF0000"
+  - id: green
+    hex: "00FF00"
+  - id: blue
+    hex: "0000FF"
+  - id: orange
+    hex: "FF7700"
+
+display:
+  - platform: hub75_matrix_display
+    id: matrix
+    width: 64
+    height: 64
+    chain_length: 1
+    brightness: 90
+    # SHIFTREG (default), FM6124, FM6126A, ICN2038S, MBI5124, SM5266, DP3246_SM5368
+    driver: FM6124
+    clock_phase: false
+
+    # use pin E because of 64 rows
+    E_pin: 32
+
+    # re-define with default values, but disable strapping warnings
+    C_pin:
+      number: 5
+      ignore_strapping_warning: true
+    OE_pin:
+      number: 15
+      ignore_strapping_warning: true
+    G2_pin:
+      number: 12
+      ignore_strapping_warning: true
+
+    # draw something
+
+    # https://next.esphome.io/components/display/#basic-shapes
+    # - it.line(x, y, x2, y2);
+    # - it.rectangle(x, y, w, h, [color]);
+    # - it.filled_rectangle(x, y, w, h, [color]);
+    # - it.circle(x, y, radius);
+    # - it.filled_circle(x, y, radius);
+    # - it.filled_ring(x, y, innerRadius, outerRadius);
+    # - it.filled_gauge(x, y, innerRadius, outerRadius, percentage)
+    # - it.triangle(x, y, x2, y2, x3, y3);
+    # - it.filled_triangle(x, y, x2, y2, x3, y3);
+
+    # - it.fill(COLOR_OFF);
+
+
+    # https://next.esphome.io/components/display/#drawing-static-text
+    # - it.print(<x>, <y>, <font>, [color=COLOR_ON], [align=TextAlign::TOP_LEFT], <text>);
+    lambda: |-
+      it.fill(id(black));
+      it.print(32, 32, id(roboto), id(red), TextAlign::CENTER,  "Session 56");
+      it.rectangle(0, 0, 64, 64, id(orange));
+      it.rectangle(1, 1, 62, 62, id(red));
+      it.rectangle(2, 2, 60, 60, id(green));
+      it.rectangle(3, 3, 58, 58, id(blue));

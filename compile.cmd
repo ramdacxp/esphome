@@ -48,7 +48,7 @@ docker run -it --rm^
   -v "esphome-platformio:/root/.platformio" ^
   -v "%ROOT%:/mnt/host" ^
   ghcr.io/esphome/esphome ^
-  -c "cp /mnt/host/*.yaml . && esphome %COMMAND% %SOURCE% && cp /config/.esphome/build/%NAME%/.pioenvs/%NAME%/firmware.factory.bin /mnt/host/bin/%NAME%.bin"
+  -c "cp /mnt/host/*.* . && esphome %COMMAND% %SOURCE% && cp /config/.esphome/build/%NAME%/.pioenvs/%NAME%/firmware.factory.bin /mnt/host/bin/%NAME%.bin"
 
 echo Firmware saved as: %ROOT%bin\%NAME%.bin
 dir %ROOT%bin\%NAME%.bin
