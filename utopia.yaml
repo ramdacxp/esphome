@@ -46,7 +46,7 @@ globals:
   - id: message
     type: std::string
     restore_value: no
-    initial_value: '"Session 56\nHello World\nNice to\nmeet you"'
+    initial_value: '"Session •56• Nov/2025 Framed Utopia"'
 
 button:
   - platform: template
@@ -58,7 +58,7 @@ button:
             id(message) = GetRandomMessage();
 
 interval:
-  - interval: 5s
+  - interval: 8s
     then:
       - button.press: nextMessage
 
@@ -71,8 +71,8 @@ font:
       0123456789,
       abcdefghijklmnopqrstuvwxyz,
       ABCDEFGHIJKLMNOPQRSTUVWXYZ,
-      ÄÖÜäöüß,
-      (,),+,-,_,.,°,•,
+      ÄÖÜäöüßé,
+      (,),/,+,-,_,.,°,•,
       "\u0020", # space
       "\u002C", # ,
       "\u0021", # !
