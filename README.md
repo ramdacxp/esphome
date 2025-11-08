@@ -65,6 +65,17 @@ Selected commands to be used in the ESPHome bash:
   * Another ESPHome wrapper
     [sekureco42/esphome-hub75](https://github.com/sekureco42/esphome-hub75)
 
+### Framed Utopia
+
+`utopia.yaml` displays random "Utopia" messages on a HUB75 64x64 matrix.
+Short, nice, utopic statements - simply to make you smile.
+
+This is basically the ESPHome version of [this project](https://github.com/Esshahn/esp32-dotmatrix-utopia-offline) shared by [Ingo Hinterding](https://github.com/Esshahn).
+
+![Framed Utopia](doc/utopia.jpg)
+
+* [Utopia messages (German)](https://github.com/Esshahn/esp32-dotmatrix-utopia-offline/blob/29ec1e009be6e6e01db2c21299e1946cc10cb018/esp32-dotmatrix-utopia-offline.ino#L41)
+
 ### Casalux LED Bar
 
 `led.yaml` drives a "Casalux LED Bar" on a ESP32 C3 Super Mini.
