@@ -57,8 +57,21 @@ button:
         - lambda: |-
             id(message) = GetRandomMessage();
 
+# number:
+#   - platform: template
+#     name: "Aktualisierungsintervall (sek)"
+#     id: nextMessageInterval
+#     min_value: 5
+#     max_value: 3600
+#     step: 1
+#     initial_value: 10
+#     optimistic: true
+
 interval:
-  - interval: 8s
+  - interval: 10s
+  # Error: This option is not templatable!.
+  # - interval: !lambda "return id(nextMessageInterval).state;"
+    startup_delay: 15s
     then:
       - button.press: nextMessage
 
