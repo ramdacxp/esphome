@@ -49,7 +49,8 @@ void PrintMultiline(
 
     std::string remain = text.substr(pos + 1);
     // ESP_LOGD(LOGTAG, "Remaining: '%s'", remain.c_str());
-    PrintMultiline(it, x, y + font->get_height(), font, color, align, remain);
+    Color newColor = color.gradient(Color(0, 255, 0), 64);
+    PrintMultiline(it, x, y + font->get_height(), font, newColor, align, remain);
   }
 }
 

@@ -94,30 +94,7 @@ display:
       ignore_strapping_warning: true
 
     # draw something
-
-    # https://next.esphome.io/components/display/#basic-shapes
-    # - it.line(x, y, x2, y2);
-    # - it.rectangle(x, y, w, h, [color]);
-    # - it.filled_rectangle(x, y, w, h, [color]);
-    # - it.circle(x, y, radius);
-    # - it.filled_circle(x, y, radius);
-    # - it.filled_ring(x, y, innerRadius, outerRadius);
-    # - it.filled_gauge(x, y, innerRadius, outerRadius, percentage)
-    # - it.triangle(x, y, x2, y2, x3, y3);
-    # - it.filled_triangle(x, y, x2, y2, x3, y3);
-
-    # - it.fill(COLOR_OFF);
-
-
-    # https://next.esphome.io/components/display/#drawing-static-text
-    # - it.print(<x>, <y>, <font>, [color=COLOR_ON], [align=TextAlign::TOP_LEFT], <text>);
     lambda: |-
-      // static const char *TAG = "Utopia";
-
-      // int w = GetTextWidth(&it, id(roboto), "hello");
-      // ESP_LOGD(TAG, "Width: %d", w);
-
       it.fill(id(black));
-      // it.print(32, 32, id(roboto), id(red), TextAlign::CENTER,  "Session •56•\rÄÖÜäöüß");
       PrintCenteredMultiline(&it, id(roboto), id(red), "Session •56•\nÄÖÜäöüß\n3rd Line");
       it.rectangle(0, 0, 64, 64, id(orange));
