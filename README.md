@@ -5,9 +5,9 @@ _(Updated during [👾 Session 56](https://session.pestilenz.org/) in Nov 2025)_
 This repo provides scripts to execute dockerized ESPHome commands.
 
 * Use `compile.cmd file.yaml compname` to compile the ESPHome component `compname` defined in the file `file.yaml`.
-  Fireware will be available in `bin\compname.bin`.
+  Firmware will be available in `bin\compname.bin`.
 * Use `bash.cmd` to start a WSL bash shell, where the `esphome` command is available.
-* Frameworks, libraries, and temp. PlatformIO data are cached in docker volumes `esphome-config` and `esphome-platformio` speed up compilation and prevent multiple large downloads.
+* Frameworks, libraries, and temp. PlatformIO data are cached in docker volumes `esphome-config` and `esphome-platformio` to speed up compilation and prevent repeated downloads of those large libraries.
   The volumes can be deleted to force a fresh build.
 * Use `dashboard.cmd` to start the ESPHome Dashboard at: <http://localhost:6052/>.
 * If the repo's root folder is opened in [VSCode](https://code.visualstudio.com/), the [ESPHome extension](https://marketplace.visualstudio.com/items?itemName=ESPHome.esphome-vscode) provides syntax highlighting for the `.yaml` files.
@@ -15,19 +15,20 @@ This repo provides scripts to execute dockerized ESPHome commands.
 ## WSL Performance Tweak
 
 Mounting a local windows folder into a WSL2 based docker container and compiling within this folder leads to a massive performance drop (factor 10) because of many I/O operations during the build.
-The scripts solve this by mounting the local folder to `/mnt/host` and copying `*.yaml` and `*.bin` back and forth. Temp. compilation files are stored in docker volumes.
+The scripts solve this by mounting the local folder to `/mnt/host` and copying sources and firmware back and forth. Temp. compilation files are stored in docker volumes.
 
 ## Usage
 
 * Compile: `compile.cmd file.yaml name`
 * ESPHome bash: `bash.cmd`
 
-Selected commands to be used in the ESPHome bash:
+Selected `esphome` commands to be used in the ESPHome `bash`:
 
 * Start new project: `esphome wizard project.yaml`
 * Build project: `esphome compile project.yaml`
-* Build & upload project: `esphome run project.yaml`
-* Run [Dashboard](http://localhost:6052/): `esphome dashboard /config`
+* Cleanup temp. files of project: `esphome clean project.yaml`
+* Build project, OTA upload, start logs: `esphome run project.yaml`
+* Run [Dashboard](http://localhost:6052/) from `/config` folder: `esphome dashboard /config`
 
 ## Links
 
@@ -36,7 +37,13 @@ Selected commands to be used in the ESPHome bash:
 * [ESPHome Web Installer](https://web.esphome.io/) to flash a given `.bin` via browser connected via `COMx`.
   * If the board has a `BOOT` key, press and hold it while confirming the installation wit `[INSTALL]`.
   * It helps to power off the board before connecting the serial port.
+    Optionally holds down the `BOOT` key while connecting the board to the power source.
+  * Try to connect `GPIO0` and `GND` if the board has no `BOOT` key, [details here](https://esphome.io/guides/physical_device_connection/#connecting-to-the-esp).
 * [CP210x Universal Windows Driver](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) required on Windows@Arm64 to flash Esp32 NodeMPU boards.
+
+## Projects
+
+The root folder of this repo contains several ESPHome projects (`*.yaml`) which can be compiled with the above scripts.
 
 ### Hub75 Matrix Display
 
