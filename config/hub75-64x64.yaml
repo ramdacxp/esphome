@@ -7,6 +7,7 @@
 esphome:
   name: hub75-64x64
   friendly_name: 64x64 Matrix
+  comment: Hello World on a HUB75 64x64 display
 
   # single threaded compilation could be faster
   # https://community.home-assistant.io/t/very-slow-compiling-process/600259/16

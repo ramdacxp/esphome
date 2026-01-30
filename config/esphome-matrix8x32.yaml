@@ -15,7 +15,7 @@ substitutions:
 esphome:
   name: esphome-matrix8x32
   friendly_name: Matrix
-  comment: "EDSP32 8x32 Matrix"
+  comment: "ESP32 8x32 Matrix"
 
 esp32:
   board: esp32dev
@@ -50,8 +50,8 @@ captive_portal:
 #       type: git
 #       url: https://github.com/lubeda/EspHoMaTriXv2
 #       ref: 2025.7.1
-#     refresh: 60s 
-#     components: [ ehmtxv2 ]   
+#     refresh: 60s
+#     components: [ ehmtxv2 ]
 
 font:
   - file: fonts/ehmtx.ttf
