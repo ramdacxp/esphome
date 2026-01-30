@@ -1,0 +1,138 @@
+# ESPHome version of Framed Utopia
+
+# based on this sketch
+# https://github.com/Esshahn/esp32-dotmatrix-utopia-offline/blob/main/esp32-dotmatrix-utopia-offline.ino
+
+# YAML multi line strings
+# https://stackoverflow.com/questions/3790454/how-do-i-break-a-string-in-yaml-over-multiple-lines
+
+esphome:
+  name: utopia
+  friendly_name: Framed Utopia
+  includes:
+    - utopia.h
+    - utopia_messages.h
+
+external_components:
+  - source: github://TillFleisch/ESPHome-HUB75-MatrixDisplayWrapper@main
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+# api:
+#   encryption:
+#     key: "kjdfgkjhHJKjkkjdfgkjhdfgkjdfghkretkjhdfgdfg="
+
+# ota:
+#   - platform: esphome
+
+# wifi:
+#   ssid: !secret wifi_ssid
+#   password: !secret wifi_password
+
+#   ap:
+#     ssid: "hub75-64x64"
+#     password: "setupMatrix"
+
+# captive_portal:
+
+# ==========================================================
+
+globals:
+  - id: message
+    type: std::string
+    restore_value: no
+    initial_value: '"Session •56• Nov/2025 Framed Utopia"'
+
+button:
+  - platform: template
+    id: nextMessage
+    name: "Nächste Nachricht"
+    on_press:
+      then:
+        - lambda: |-
+            id(message) = GetRandomMessage();
+
+# number:
+#   - platform: template
+#     name: "Aktualisierungsintervall (sek)"
+#     id: nextMessageInterval
+#     min_value: 5
+#     max_value: 3600
+#     step: 1
+#     initial_value: 10
+#     optimistic: true
+
+interval:
+  - interval: 10s
+  # Error: This option is not templatable!.
+  # - interval: !lambda "return id(nextMessageInterval).state;"
+    startup_delay: 15s
+    then:
+      - button.press: nextMessage
+
+font:
+  # gfonts://family[@weight]
+  - file: "gfonts://Roboto"
+    id: roboto
+    size: 10
+    glyphs: [
+      0123456789,
+      abcdefghijklmnopqrstuvwxyz,
+      ABCDEFGHIJKLMNOPQRSTUVWXYZ,
+      ÄÖÜäöüßé,
+      (,),/,+,-,_,.,°,•,
+      "\u0020", # space
+      "\u002C", # ,
+      "\u0021", # !
+      "\u0022", # "
+      "\u0027", # '
+      ]
+
+color:
+  - id: black
+    hex: "000000"
+  - id: red
+    hex: "FF0000"
+  - id: green
+    hex: "00FF00"
+  - id: blue
+    hex: "0000FF"
+  - id: orange
+    hex: "FF7700"
+
+display:
+  - platform: hub75_matrix_display
+    id: matrix
+    width: 64
+    height: 64
+    chain_length: 1
+    brightness: 90
+    # SHIFTREG (default), FM6124, FM6126A, ICN2038S, MBI5124, SM5266, DP3246_SM5368
+    driver: FM6124
+    clock_phase: false
+
+    # use pin E because of 64 rows
+    E_pin: 32
+
+    # re-define with default values, but disable strapping warnings
+    C_pin:
+      number: 5
+      ignore_strapping_warning: true
+    OE_pin:
+      number: 15
+      ignore_strapping_warning: true
+    G2_pin:
+      number: 12
+      ignore_strapping_warning: true
+
+    # draw something
+    lambda: |-
+      it.fill(id(black));
+      // PrintCenteredMultiline(&it, id(roboto), id(red), "Session •56•\nÄÖÜäöüß\n3rd Line");
+      PrintCenteredMultiline(&it, id(roboto), id(red), id(message));
+      it.rectangle(0, 0, 64, 64, id(orange));
