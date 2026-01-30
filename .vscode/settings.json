@@ -1,4 +1,33 @@
 {
+  "cSpell.language": "en, de-de",
+  "cSpell.customDictionaries": {
+    "homepageDict": {
+      "name": "Workspace Dictionary",
+      "path": "${workspaceFolder}/.vscode/dictionary.txt",
+      "scope": "workspace",
+      "addWords": true
+    }
+  },
+  "statusbar_command.commands": [
+    {
+      "text": "$(globe) Dashboard",
+      "tooltip": "Open the ESPHome dashboard",
+      "name": "esphome.dashboard",
+      "command": "workbench.action.tasks.runTask",
+      "arguments": [
+        "ESPHome: Dashboard"
+      ]
+    },
+    {
+      "text": "$(wrench) Compile",
+      "tooltip": "Compile the current YAML file in ESPHome",
+      "name": "esphome.dashboard",
+      "command": "workbench.action.tasks.runTask",
+      "arguments": [
+        "ESPHome: Compile"
+      ]
+    }
+  ],
   "esphome.dashboardUri": "http://localhost:6052/",
   "esphome.validator": "dashboard"
 }

@@ -1,27 +1,33 @@
-# Docker hosted ESPHome
+# Podman hosted ESPHome development
 
-* This repo provides an `esphome.cmd`, which starts the ESPHome Dashboard on the local PC.  
-  Dashboard address: <http://localhost:6052/>
-* If the repo's root folder is opened in [VSCode](https://code.visualstudio.com/), the [ESPHome extension](https://marketplace.visualstudio.com/items?itemName=ESPHome.esphome-vscode) provides syntax highlighting for the `.yaml` files.
+This repo provides scripts to develop ESPHome based projects on Windows.  
+It uses a containerized version of the ESPHome tools running in PodMan.
 
-**Important:**
-I was not able to successfully compile on a **Windows on ARM** laptop ("Copilot PC").
-So headers are missing in the AMR variant of related tools.
-The same code compiles just fine on AMD64.
+**Hint:**
+The old Docker based version of this repo can be found in the
+[v1 branch](https://github.com/ramdacxp/esphome/tree/v1).
 
-**Slow?**
-Large projects are very slow during compile (290 vs. 2343 sec).
-It's not related to CPU but I/O, if the EspHome `/config` folder is mounted between Docker and Windows Host.
+## Installation
 
-* Solution: Use a native folder or volume for `/config` and copy the YAML from elsewhere, e.g. `/mnt/host`.
-* Solution 2: Run docker inside WSL2!
+* `git` Version Control
+* [Visual Studio Code](https://code.visualstudio.com/) with [ESPHome extension](https://marketplace.visualstudio.com/items?itemName=ESPHome.esphome-vscode) provides syntax highlighting for the `.yaml` files.
+* WSL2 (run `wsl --install` followed by `wsl --update`)
+* [Podman Desktop](https://podman-desktop.io/) for Windows (including PodMan)
 
 ## Usage
 
-* Start new project: `esphome wizard test.yaml`
-* Build project: `esphome compile hub75-64x64.yaml`
-* Build & upload project: `esphome run template-d1_mini.yaml`
-* Run [Dashboard](http://localhost:6052/): `esphome dashboard /config`
+* Start podman backend with: `podman machine start`
+* Use `esphome.cmd` to execute all esphome shell commands, e.g. `esphome --help`
+* Use `dashboard.cmd` to start ESPHome website at <http://localhost:6052>
+
+If the repo folder is opened in VSCode, intellisense for ESPHome `.yaml` is support.
+You can use the default build task (`F6`) to compile the active `.yaml` file.
+The statusbar contains buttons to execute common tasks.
+
+## Projects
+
+ESPHome projects are available in the folder `/config`.
+If a documentation is available, it can be found in a `.md` file with the same base name as the ESPHome `.yaml`.
 
 ## Links
 
