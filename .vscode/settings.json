@@ -26,6 +26,15 @@
       "arguments": [
         "ESPHome: Compile"
       ]
+    },
+    {
+      "text": "$(run) Upload",
+      "tooltip": "Upload the current ESPHome YAML file via OTA",
+      "name": "esphome.dashboard",
+      "command": "workbench.action.tasks.runTask",
+      "arguments": [
+        "ESPHome: OTA Upload"
+      ]
     }
   ],
   "esphome.dashboardUri": "http://localhost:6052/",

@@ -27,6 +27,7 @@ logger:
 
 # Enable Home Assistant API
 api:
+  id: myApi
   encryption:
     key: "3UbzqLNBqyLaO+LZVcU9JoC/4pk4qbwrH2Iwb3vyw5c="
 
@@ -37,6 +38,7 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  id: myWifi
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
@@ -50,19 +52,43 @@ web_server:
   log: false
   version: 3
 
+# blink slow: warning; blink fast: error; otherwise off
+status_led:
+  pin:
+    number: GPIO08
+    inverted: true
+    ignore_strapping_warning: true
+
 font:
   - file: "fonts/pixelmix/pixelmix.ttf"
-    id: font_pixelmix_6
+    id: myFont
     size: 6
 
 spi:
   clk_pin: $display_pin_clk
   mosi_pin: $display_pin_din
 
+time:
+  - platform: homeassistant
+    id: myTime
+    timezone: Europe/Berlin
+
 display:
   - platform: max7219digit
     cs_pin: $display_pin_cs
     num_chips: 3
+    scroll_mode: STOP
+    scroll_speed: 100ms
+
     intensity: $display_intensity
+    id: myDisplay
     lambda: |-
-      it.print(0, 1, id(font_pixelmix_6), "Hello!");
+      if (!id(myWifi).is_connected()) {
+        it.print(0, 1, id(myFont), "Online");
+      // } else if (!id(myApi).is_connected()) {
+      //  it.print(0, 0, id(myFont), "Load");
+      } else {
+        // it.print(0, -1, id(myFont), "Guten Tag");
+        auto time = id(myTime).now();
+        it.strftime(0, 1, id(myFont), "%H:%M", time);
+      }

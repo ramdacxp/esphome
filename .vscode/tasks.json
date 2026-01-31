@@ -38,6 +38,18 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "type": "process",
+      "label": "ESPHome: OTA Upload",
+      "command": "esphome.cmd",
+      "args": [
+        "upload",
+        "${fileBasename}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
     }
   ]
 }
