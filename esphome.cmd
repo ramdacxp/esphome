@@ -8,7 +8,10 @@ rem https://github.com/esphome/feature-requests/issues/2759
 set ROOT=%~dp0
 set CFG=%ROOT%config\
 
-rem Create Docker volume, if not exists
+rem start podman machine
+podman machine start 2>NUL
+
+rem Create container volume, if not exists
 podman volume inspect esphome-data >NUL 2>&1
 if errorlevel 1 (
   echo Creating volume esphome-data...

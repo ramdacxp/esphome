@@ -1,3 +1,17 @@
+# === Friends-Communicator ===
+# 3x 8x8 MAX7219 matrix + rotary encoder attached to ESP32 C3 SuperMini
+# Created: 30.01.2026
+#
+# https://esphome.io/components/display/max7219digit/
+
+# GPIO2/D0 is a strapping pin
+substitutions:
+  display_pin_din:   GPIO5  # D3, yellow
+  display_pin_cs:    GPIO6  # D4, green
+  display_pin_clk:   GPIO7  # D5, white
+  display_intensity: 3      # 0...15
+
+
 esphome:
   name: esphome-communicator
   friendly_name: Communicator
@@ -35,3 +49,20 @@ web_server:
   ota: false
   log: false
   version: 3
+
+font:
+  - file: "fonts/pixelmix/pixelmix.ttf"
+    id: font_pixelmix_6
+    size: 6
+
+spi:
+  clk_pin: $display_pin_clk
+  mosi_pin: $display_pin_din
+
+display:
+  - platform: max7219digit
+    cs_pin: $display_pin_cs
+    num_chips: 3
+    intensity: $display_intensity
+    lambda: |-
+      it.print(0, 1, id(font_pixelmix_6), "Hello!");
