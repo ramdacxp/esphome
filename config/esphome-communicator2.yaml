@@ -1,0 +1,139 @@
+# === Friends-Communicator II ===
+# 3x 8x8 MAX7219 matrix + rotary encoder attached to ESP32 C3 Mini (not SuperMini, as this had connection issues)
+# Created: 01.02.2026
+# http://esphome-communicator2/
+#
+# https://esphome.io/components/display/max7219digit/
+
+# Strapping pins: GPIO0, GPIO2, GPIO8 (can be used for SPI after boot)
+# Avoid GPIO9 as used as boot button
+#
+# ESP32 C3 Mini pins from COM USB port:
+# GND, 5V, 5V, GND, 10, 1, 0, GND, Reset, GND, 3, 2, 3V3, 3V3, GND
+
+substitutions:
+  status_led_pin:    GPIO8  # Single WS2812 LED
+  display_pin_din:   GPIO7 # yellow
+  display_pin_cs:    GPIO10  # green
+  display_pin_clk:   GPIO6  # white
+  display_intensity: 5      # 0...15
+
+esphome:
+  name: "esphome-communicator2"
+  friendly_name: "esphome-communicator2"
+
+  on_boot:
+    - light.turn_on:
+        id: boardStatusLed
+        brightness: 20%
+        red: 1
+        green: 1
+        blue: 0
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  id: myApi
+  encryption:
+    key: "iy49UtCT/mvfQ0JN2W0in8cH9Ft8/mkq6sSzOcGyhkk="
+
+ota:
+  - platform: esphome
+    password: "18fca89f1324d6d2fcfc22923b5e1b0e"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  id: myWifi
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Communicator"
+    password: "MyComm2026"
+
+  on_connect:
+    - light.turn_on:
+        id: boardStatusLed
+        brightness: 20%
+        red: 0
+        green: 0
+        blue: 1
+
+  on_disconnect:
+    - light.turn_on:
+        id: boardStatusLed
+        brightness: 20%
+        red: 1
+        green: 0
+        blue: 0
+
+captive_portal:
+
+web_server:
+  port: 80
+  log: False
+  ota: False
+  version: 2
+  local: True
+
+spi:
+  clk_pin: $display_pin_clk
+  mosi_pin: $display_pin_din
+
+time:
+  - platform: homeassistant
+    id: myTime
+    timezone: Europe/Berlin
+
+font:
+  - file: "fonts/bdf/5x8.bdf"
+    id: myFont
+    glyphs: "1234567890:.-=°%&!?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZöäüÖÄÜß"
+
+  # - file: "fonts/pixelmix/pixelmix.ttf"
+  #   id: myFont
+  #   size: 6
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: boardStatusLed
+    name: Status LED
+    pin:
+      number: $status_led_pin
+      ignore_strapping_warning: True
+    num_leds: 1
+    chipset: WS2812
+    rgb_order: GRB
+
+display:
+  - platform: max7219digit
+    cs_pin: $display_pin_cs
+    num_chips: 3
+    scroll_mode: STOP
+    scroll_speed: 100ms
+
+    intensity: $display_intensity
+    id: myDisplay
+    lambda: |-
+      if (!id(myWifi).is_connected()) {
+        it.print(0, 0, id(myFont), "W-LAN");
+      } else if (!id(myApi).is_connected()) {
+        it.print(0, 0, id(myFont), "NoAPI");
+      } else {
+        // it.print(0, -1, id(myFont), "Guten Tag");
+        auto time = id(myTime).now();
+        it.strftime(1, 0, id(myFont), "%H", time);
+        it.strftime(14, 0, id(myFont), "%M", time);
+        if ( time.second % 2==0)
+        {
+          it.draw_pixel_at(12, 3, COLOR_ON);
+          it.draw_pixel_at(12, 5, COLOR_ON);
+        }
+      }

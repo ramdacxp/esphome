@@ -1,2 +1,8 @@
+devkitm
 esphome
+homeassistant
+hotspot
 podman
+ssid
+strftime
+wifi
