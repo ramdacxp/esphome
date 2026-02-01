@@ -17,6 +17,9 @@ substitutions:
   display_pin_cs:    GPIO10  # green
   display_pin_clk:   GPIO6  # white
   display_intensity: 5      # 0...15
+  rotary_pin_a:  GPIO1
+  rotary_pin_a:  GPIO0
+  rotary_pin_btn:  GPIO2
 
 esphome:
   name: "esphome-communicator2"
@@ -95,7 +98,7 @@ time:
 font:
   - file: "fonts/bdf/5x8.bdf"
     id: myFont
-    glyphs: "1234567890:.-=°%&!?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZöäüÖÄÜß"
+    glyphs: "1234567890:.-=°%&!?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZßöäüÖÄÜ"
 
   # - file: "fonts/pixelmix/pixelmix.ttf"
   #   id: myFont
@@ -105,6 +108,7 @@ light:
   - platform: esp32_rmt_led_strip
     id: boardStatusLed
     name: Status LED
+    internal: True
     pin:
       number: $status_led_pin
       ignore_strapping_warning: True
@@ -112,15 +116,39 @@ light:
     chipset: WS2812
     rgb_order: GRB
 
+sensor:
+  - platform: rotary_encoder
+    id: myRotaryEncoder
+    name: "Rotary Encoder"
+    pin_a: $rotary_pin_a
+    pin_b: $rotary_pin_b
+    resolution: 1  # or 2, 4 (pulses per detent)
+    min_value: 0
+    max_value: 100
+    on_clockwise:
+      - logger.log: "Turned clockwise"
+    on_anticlockwise:
+      - logger.log: "Turned anticlockwise"
+
+binary_sensor:
+  - platform: gpio
+    name: "Rotary Button"
+    pin:
+      number: $rotary_pin_btn
+      mode: INPUT_PULLUP
+      inverted: true
+    on_press:
+      - logger.log: "Button pressed"
+
 display:
   - platform: max7219digit
+    id: myDisplay
+    intensity: $display_intensity
     cs_pin: $display_pin_cs
     num_chips: 3
     scroll_mode: STOP
     scroll_speed: 100ms
 
-    intensity: $display_intensity
-    id: myDisplay
     lambda: |-
       if (!id(myWifi).is_connected()) {
         it.print(0, 0, id(myFont), "W-LAN");

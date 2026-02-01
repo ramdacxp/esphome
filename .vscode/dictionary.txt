@@ -1,8 +1,11 @@
 devkitm
 esphome
+gpio
 homeassistant
 hotspot
+mosi
 podman
+PULLUP
 ssid
 strftime
 wifi
