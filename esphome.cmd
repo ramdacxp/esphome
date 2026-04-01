@@ -36,6 +36,16 @@ podman run ^
   -v esphome-data:/cache ^
   -v esphome-data:/build ^
   -v "%CFG%:/config" ^
+  --device /dev/ttyS0 ^
+  --device /dev/ttyS1 ^
+  --device /dev/ttyS2 ^
+  --device /dev/ttyS3 ^
+  --device /dev/ttyS4 ^
+  --device /dev/ttyS5 ^
+  --device /dev/ttyS6 ^
+  --device /dev/ttyS7 ^
   ghcr.io/esphome/esphome %*
+
+  @REM --entrypoint bash ^
 
 endlocal

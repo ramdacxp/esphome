@@ -1,5 +1,5 @@
 # === Friends-Communicator II ===
-# 3x 8x8 MAX7219 matrix + rotary encoder attached to ESP32 C3 Mini (not SuperMini, as this had connection issues)
+# 3x 8x8 MAX7219 matrix + rotary encoder attached to ESP32 C3 Mini Dual USB (not SuperMini, as this had connection issues)
 # Created: 01.02.2026
 # http://esphome-communicator2/
 #
@@ -8,18 +8,26 @@
 # Strapping pins: GPIO0, GPIO2, GPIO8 (can be used for SPI after boot)
 # Avoid GPIO9 as used as boot button
 #
+# Rotary Encoder:
+# CLK (A), DT (B), SW (Btn), +5V, GND
+#
+# Matrix:
+# CLK, CS, DIN, GND, VCC
+
 # ESP32 C3 Mini pins from COM USB port:
 # GND, 5V, 5V, GND, 10, 1, 0, GND, Reset, GND, 3, 2, 3V3, 3V3, GND
 
 substitutions:
   status_led_pin:    GPIO8  # Single WS2812 LED
-  display_pin_din:   GPIO7 # yellow
-  display_pin_cs:    GPIO10  # green
+
   display_pin_clk:   GPIO6  # white
+  display_pin_cs:    GPIO10 # green
+  display_pin_din:   GPIO7  # yellow
   display_intensity: 5      # 0...15
-  rotary_pin_a:  GPIO1
-  rotary_pin_a:  GPIO0
-  rotary_pin_btn:  GPIO2
+
+  rotary_pin_a:      GPIO19
+  rotary_pin_b:      GPIO18
+  rotary_pin_btn:    GPIO04
 
 esphome:
   name: "esphome-communicator2"
@@ -32,6 +40,32 @@ esphome:
         red: 1
         green: 1
         blue: 0
+
+globals:
+  - id: led_red
+    type: int
+    restore_value: no
+    initial_value: '255'
+  - id: led_green
+    type: int
+    restore_value: no
+    initial_value: '255'
+  - id: led_blue
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: color_mode
+    type: int
+    restore_value: no
+    initial_value: '0'  # 0=Red, 1=Green, 2=Blue
+  - id: edit_mode
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: edit_time
+    type: unsigned long
+    restore_value: no
+    initial_value: '0'
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -126,9 +160,45 @@ sensor:
     min_value: 0
     max_value: 100
     on_clockwise:
-      - logger.log: "Turned clockwise"
+      - lambda: |-
+          if (id(color_mode) == 0) {
+            id(led_red) = min(255, id(led_red) + 32);
+            ESP_LOGI("encoder", "Red: %d", id(led_red));
+          } else if (id(color_mode) == 1) {
+            id(led_green) = min(255, id(led_green) + 32);
+            ESP_LOGI("encoder", "Green: %d", id(led_green));
+          } else {
+            id(led_blue) = min(255, id(led_blue) + 32);
+            ESP_LOGI("encoder", "Blue: %d", id(led_blue));
+          }
+          id(edit_mode) = true;
+          id(edit_time) = millis();
+      - light.turn_on:
+          id: boardStatusLed
+          brightness: 20%
+          red: !lambda "return id(led_red) / 255.0;"
+          green: !lambda "return id(led_green) / 255.0;"
+          blue: !lambda "return id(led_blue) / 255.0;"
     on_anticlockwise:
-      - logger.log: "Turned anticlockwise"
+      - lambda: |-
+          if (id(color_mode) == 0) {
+            id(led_red) = max(0, id(led_red) - 32);
+            ESP_LOGI("encoder", "Red: %d", id(led_red));
+          } else if (id(color_mode) == 1) {
+            id(led_green) = max(0, id(led_green) - 32);
+            ESP_LOGI("encoder", "Green: %d", id(led_green));
+          } else {
+            id(led_blue) = max(0, id(led_blue) - 32);
+            ESP_LOGI("encoder", "Blue: %d", id(led_blue));
+          }
+          id(edit_mode) = true;
+          id(edit_time) = millis();
+      - light.turn_on:
+          id: boardStatusLed
+          brightness: 20%
+          red: !lambda "return id(led_red) / 255.0;"
+          green: !lambda "return id(led_green) / 255.0;"
+          blue: !lambda "return id(led_blue) / 255.0;"
 
 binary_sensor:
   - platform: gpio
@@ -138,7 +208,12 @@ binary_sensor:
       mode: INPUT_PULLUP
       inverted: true
     on_press:
-      - logger.log: "Button pressed"
+      - lambda: |-
+          id(edit_mode) = true;
+          id(edit_time) = millis();
+          id(color_mode) = (id(color_mode) + 1) % 3;
+          const char* modes[] = {"Red", "Green", "Blue"};
+          ESP_LOGI("button", "Mode changed to: %s", modes[id(color_mode)]);
 
 display:
   - platform: max7219digit
@@ -148,19 +223,46 @@ display:
     num_chips: 3
     scroll_mode: STOP
     scroll_speed: 100ms
-
     lambda: |-
-      if (!id(myWifi).is_connected()) {
-        it.print(0, 0, id(myFont), "W-LAN");
-      } else if (!id(myApi).is_connected()) {
-        it.print(0, 0, id(myFont), "NoAPI");
+      // Check if we're in edit mode and still within 2 seconds
+      if (id(edit_mode) && (millis() - id(edit_time) < 2000)) {
+        // Display mode and value
+        const char* modes[] = {"R", "G", "B"};
+        int value = 0;
+        if (id(color_mode) == 0) {
+          value = id(led_red);
+        } else if (id(color_mode) == 1) {
+          value = id(led_green);
+        } else {
+          value = id(led_blue);
+        }
+
+        char buffer[10];
+        snprintf(buffer, sizeof(buffer), "%s %03d", modes[id(color_mode)], value);
+        it.print(0, 0, id(myFont), buffer);
+
       } else {
-        // it.print(0, -1, id(myFont), "Guten Tag");
-        auto time = id(myTime).now();
-        it.strftime(1, 0, id(myFont), "%H", time);
-        it.strftime(14, 0, id(myFont), "%M", time);
-        if ( time.second % 2==0)
-        {
+        // Exit edit mode after 2 seconds
+        if (id(edit_mode)) {
+          id(edit_mode) = false;
+        }
+
+        // Normal display: WiFi status or time
+        if (!id(myWifi).is_connected()) {
+          it.print(0, 0, id(myFont), "W-LAN");
+        // API is only connected when log ios active or such - so disable it for now
+        // } else if (!id(myApi).is_connected()) {
+        //   it.print(0, 0, id(myFont), "NoAPI");
+        } else {
+          // it.print(0, -1, id(myFont), "Guten Tag");
+          auto time = id(myTime).now();
+          it.strftime(1, 0, id(myFont), "%H", time);
+          it.strftime(14, 0, id(myFont), "%M", time);
+          if ( time.second % 2==0)
+          {
+            it.draw_pixel_at(12, 3, COLOR_ON);
+            it.draw_pixel_at(12, 5, COLOR_ON);
+          }
           it.draw_pixel_at(12, 3, COLOR_ON);
           it.draw_pixel_at(12, 5, COLOR_ON);
         }
